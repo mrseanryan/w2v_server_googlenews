@@ -50,7 +50,8 @@ def server_exception_wrap(func):
                 result = {}
             result['success'] = 1
             result['taken'] = time.time() - start
-            logger.info("method '%s' succeeded in %ss" % (func.func_name, result['taken']))
+            logger.info("method '%s' succeeded in %ss" %
+                        (func.func_name, result['taken']))
             return result
         except Exception, e:
             logger.exception("exception serving request")
@@ -66,7 +67,8 @@ def server_exception_wrap(func):
 class Server(object):
     def __init__(self, fname):
         # load the word2vec model from gzipped file
-        self.model = gensim.models.word2vec.Word2Vec.load_word2vec_format(fname, binary=True)
+        self.model = gensim.models.word2vec.Word2Vec.load_word2vec_format(
+            fname, binary=True)
         self.model.init_sims(replace=True)
         # ARE needed for similarity (at least, syn0 is)
         # try:
@@ -76,10 +78,14 @@ class Server(object):
         #     pass
 
         # sort all the words in the model, so that we can auto-complete queries quickly
-        self.orig_words = [gensim.utils.to_unicode(word) for word in self.model.index2word]
-        indices = [i for i, _ in sorted(enumerate(self.orig_words), key=lambda item: item[1].lower())]
-        self.all_words = [self.orig_words[i].lower() for i in indices]  # lowercased, sorted as lowercased
-        self.orig_words = [self.orig_words[i] for i in indices]  # original letter casing, but sorted as if lowercased
+        self.orig_words = [gensim.utils.to_unicode(
+            word) for word in self.model.index2word]
+        indices = [i for i, _ in sorted(
+            enumerate(self.orig_words), key=lambda item: item[1].lower())]
+        self.all_words = [self.orig_words[i].lower()
+                          for i in indices]  # lowercased, sorted as lowercased
+        # original letter casing, but sorted as if lowercased
+        self.orig_words = [self.orig_words[i] for i in indices]
 
     @cherrypy.expose
     @cherrypy.tools.json_in()
@@ -89,7 +95,8 @@ class Server(object):
         For a given prefix, return 10 words that exist in the model start start with that prefix
 
         """
-        prefix = gensim.utils.to_unicode(kwargs.pop('term', u'')).strip().lower()
+        prefix = gensim.utils.to_unicode(
+            kwargs.pop('term', u'')).strip().lower()
         count = kwargs.pop('count', 10)
         pos = bisect.bisect_left(self.all_words, prefix)
         result = self.orig_words[pos: pos + count]
@@ -109,12 +116,15 @@ class Server(object):
             negative = [negative]
         try:
             result = self.model.most_similar(
-                positive=[gensim.utils.to_utf8(word).strip() for word in positive if word],
-                negative=[gensim.utils.to_utf8(word).strip() for word in negative if word],
+                positive=[gensim.utils.to_utf8(word).strip()
+                          for word in positive if word],
+                negative=[gensim.utils.to_utf8(word).strip()
+                          for word in negative if word],
                 topn=5)
         except:
             result = []
-        logger.info("similars for %s vs. %s: %s" % (positive, negative, result))
+        logger.info("similars for %s vs. %s: %s" %
+                    (positive, negative, result))
         return {'similars': result}
 
     @server_exception_wrap
@@ -186,14 +196,18 @@ if __name__ == '__main__':
         sys.exit(1)
 
     conf_file = sys.argv[1]
-    config_srv = Config(**cherrypy.lib.reprconf.Config(conf_file).get('global'))
-    config = Config(**cherrypy.lib.reprconf.Config(conf_file).get('w2v_server'))
+    config_srv = Config(
+        **cherrypy.lib.reprconf.Config(conf_file).get('global'))
+    config = Config(
+        **cherrypy.lib.reprconf.Config(conf_file).get('w2v_server'))
 
     if config_srv.pid_file:
         PIDFile(cherrypy.engine, config_srv.pid_file).subscribe()
     if config_srv.run_user and config_srv.run_group:
-        logging.info("dropping priviledges to %s:%s" % (config_srv.run_user, config_srv.run_group))
-        DropPrivileges(cherrypy.engine, gid=config_srv.run_group, uid=config_srv.run_user).subscribe()
+        logging.info("dropping priviledges to %s:%s" %
+                     (config_srv.run_user, config_srv.run_group))
+        DropPrivileges(cherrypy.engine, gid=config_srv.run_group,
+                       uid=config_srv.run_user).subscribe()
 
     cherrypy.quickstart(Server(config.MODEL_FILE), config=conf_file)
 
