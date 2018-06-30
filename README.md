@@ -1,41 +1,44 @@
-# Word2vec as an HTTP service
+# w2v_server_googlenews - Sean
 
-## What
+Python web server that runs a pretrained word2vec model based on Google news (3 million words).
 
-This repo contains the backend code (server) for our interactive word2vec demo running at https://rare-technologies.com/word2vec-tutorial/#bonus_app. Our web demo uses the [3,000,000 x 300 GoogleNews word2vec model](https://code.google.com/archive/p/word2vec/) trained by Google over 100 billion words, but you can plug in any model you like.
+# setup
 
-<img src="https://raw.githubusercontent.com/piskvorky/w2v_server_googlenews/master/frontend_screenshot.png" width="400">
+- download the google news zip
 
-## How
+https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit
 
-The service uses [CherryPy](http://cherrypy.org/) for a fast and minimalist Python web framework and [gensim](https://github.com/RaRe-Technologies/gensim) for the actual heavy lifting. Run with `python runserver.py hetzner.conf`, after installing dependencies `pip install -r requirements.txt`.
+- extract it (think this speeds up the python server startup)
 
-For the frontend part of this demo (Javascript, AJAX, phrase suggestions as you type), see source code at the link above in your browser. For more information, read the [tutorial post](https://rare-technologies.com/word2vec-tutorial) itself.
+can use 7-zip for Windows
 
-Examples of queries & JSON responses:
+- edit w2v_hetzner.conf to point to the unzipped bin file
 
-```bash
-# king - man + woman = ?
-curl 'http://127.0.0.1/most_similar?positive%5B%5D=woman&positive%5B%5D=king&negative%5B%5D=man'
-{"taken": 0.19543004035949707, "similars": [["queen", 0.7118192911148071], ["monarch", 0.6189674139022827], ["princess", 0.5902431011199951], ["crown_prince", 0.5499460697174072], ["prince", 0.5377321243286133]], "success": 1}
+- install Python 2.7
+- install Python pip
+  install-pip.bat (or use a Windows installer)
 
-# phrase completion (for the "suggest as you type" demo functionality)
-curl 'http://127.0.0.1/suggest?term=iPhon'
-["iPhone", "iphone", "IPhone", "Iphone", "IPHONE", "iPHONE", "iPHone", "iPhone.com", "iphone.org", "iPhone.org"]
+- install cherry web server, gensim (wraps word2vec and other ML algorithms in python)
+  install.bat
 
-# most similar phrase?
-curl 'http://127.0.0.1/most_similar?positive%5B%5D=PHP'
-{"taken": 0.24541091918945312, "similars": [["ASP.NET", 0.7275794744491577], ["scripting_languages", 0.7123507857322693], ["PHP5", 0.706219494342804], ["Joomla", 0.700035572052002], ["ASP.Net", 0.6955472230911255]], "success": 1}
+# run
 
-# which phrase doesn't fit?
-curl 'http://127.0.0.1/most_dissimilar?words%5B%5D=dinner+cereal+breakfast+lunch'
-{"taken": 0.0007932186126708984, "dissimilar": "cereal", "success": 1}
-```
+run.bat
 
-## Why
+# test (from browser)
 
-On [our gensim mailing list](https://groups.google.com/forum/#!forum/gensim), we've seen repeated questions about how the demo works. It's no rocket science, but we understand the engineering side of wrapping machine learning models, using JSON requests, handling exceptions, logging, dropping user privileges etc can be tricky and confusing if you've never done it before.
+http://localhost:8889/status
 
-We publish this repo in hopes you find it useful, as a blueprint for your own (perhaps non-word2vec) ML service demos.
+http://localhost:8889/most_similar?positive%5B%5D=woman&positive%5B%5D=king&negative%5B%5D=man
 
-(c) 2014, [rare-technologies.com](https://rare-technologies.com)
+http://localhost:8889/most_dissimilar?words%5B%5D=dinner+cereal+breakfast+lunch
+
+http://localhost:8889/suggest?term=kin
+
+## added by Sean
+
+similarity
+http://localhost:8889/similarity?words%5B%5D=sweden+germany
+
+similarityMultiple - can kind of categorize the words!
+http://localhost:8889/similarityMultiple?used[]=sweden+germany+banana&available[]=france+italy+argentina+thailand+zimbabwe+apricot+tuna
