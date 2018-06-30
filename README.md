@@ -18,6 +18,9 @@ can use 7-zip for Windows
 - install Python pip
   install-pip.bat (or use a Windows installer)
 
+- C++ compiler for python (Windows)
+  http://aka.ms/vcpython27
+
 - install cherry web server, gensim (wraps word2vec and other ML algorithms in python)
   install.bat
 
