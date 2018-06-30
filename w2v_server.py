@@ -68,11 +68,12 @@ class Server(object):
         # load the word2vec model from gzipped file
         self.model = gensim.models.word2vec.Word2Vec.load_word2vec_format(fname, binary=True)
         self.model.init_sims(replace=True)
-        try:
-            del self.model.syn0  # not needed => free up mem
-            del self.model.syn1
-        except:
-            pass
+        # ARE needed for similarity (at least, syn0 is)
+        # try:
+        #     del self.model.syn0  # not needed => free up mem
+        #     del self.model.syn1
+        # except:
+        #     pass
 
         # sort all the words in the model, so that we can auto-complete queries quickly
         self.orig_words = [gensim.utils.to_unicode(word) for word in self.model.index2word]
@@ -128,6 +129,21 @@ class Server(object):
             result = ''
         logger.info("dissimilar for %s: %s" % (words, result))
         return {'dissimilar': result}
+
+    @server_exception_wrap
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
+    def similarity(self, *args, **kwargs):
+        words = cherrypy.request.params.get('words[]', '').split()
+        # try:
+        result = self.model.similarity(words[0], words[1])
+        # result = self.model.similarity("sweden", "france")
+        # except Exception, e:
+        # except:
+        # result = ''
+        logger.info("similarity for %s %s: %s" % (words[0], words[1], result))
+        return {'similarity': result}
 
     @server_exception_wrap
     @cherrypy.expose
