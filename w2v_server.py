@@ -159,6 +159,38 @@ class Server(object):
     @cherrypy.expose
     @cherrypy.tools.json_in()
     @cherrypy.tools.json_out()
+    def similarityMultiple(self, *args, **kwargs):
+        usedWords = cherrypy.request.params.get('used[]', '').split()
+        availableWords = cherrypy.request.params.get('available[]', '').split()
+
+        results = []
+        errors = []
+
+        for usedWord in usedWords:
+            for available in availableWords:
+                # can throw if a word is not recognised
+                try:
+                    result = self.model.similarity(usedWord, available)
+                    logger.info("similarity for %s %s: %s" % (usedWord, available, result))
+                    results.append((usedWord, available, result))
+                except Exception, e:
+                    message = "error with words " + usedWord + " " + available
+                    logger.exception(message)
+                    errors.append({
+                        'error': repr(e),
+                        'message': message
+                    })
+
+        result = {
+            'results': tuple(results),
+            'errors': tuple(errors)
+        }
+        return {'similarity': result}
+
+    @server_exception_wrap
+    @cherrypy.expose
+    @cherrypy.tools.json_in()
+    @cherrypy.tools.json_out()
     def status(self, *args, **kwargs):
         """
         Return the server status.
