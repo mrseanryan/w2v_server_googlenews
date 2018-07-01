@@ -167,12 +167,13 @@ class Server(object):
         errors = []
 
         for usedWord in usedWords:
+            resultsThisWord = []
             for available in availableWords:
-                # can throw if a word is not recognised
                 try:
+                    # can throw if a word is not recognised
                     result = self.model.similarity(usedWord, available)
                     logger.info("similarity for %s %s: %s" % (usedWord, available, result))
-                    results.append((usedWord, available, result))
+                    resultsThisWord.append((available, result))
                 except Exception, e:
                     message = "error with words " + usedWord + " " + available
                     logger.exception(message)
@@ -180,6 +181,8 @@ class Server(object):
                         'error': repr(e),
                         'message': message
                     })
+            if ((len(resultsThisWord)) > 0):
+                results.append((usedWord, tuple(resultsThisWord)))
 
         result = {
             'results': tuple(results),
