@@ -70,12 +70,11 @@ class Server(object):
         self.model = gensim.models.word2vec.Word2Vec.load_word2vec_format(
             fname, binary=True)
         self.model.init_sims(replace=True)
-        # ARE needed for similarity (at least, syn0 is)
-        # try:
-        #     del self.model.syn0  # not needed => free up mem
-        #     del self.model.syn1
-        # except:
-        #     pass
+        # syn0 IS needed for similarity - but not syn1
+        try:
+            del self.model.syn1 # not needed => free up mem
+        except:
+            pass
 
         # sort all the words in the model, so that we can auto-complete queries quickly
         self.orig_words = [gensim.utils.to_unicode(
